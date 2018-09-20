@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View, Button, Alert } from 'react-native';
-import { DARK_SKY_API_KEY } from 'react-native-dotenv';
+import { DARK_SKY_API_KEY, CURRENT_LAT, CURRENT_LONG } from 'react-native-dotenv';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
-      lat: 49.3327862,
-      long: -123.1008816
+      lat: CURRENT_LAT,
+      long: CURRENT_LONG
     }
   }
 
@@ -17,7 +17,7 @@ export default class App extends React.Component {
   }
 
   getWeather = () => {
-    return fetch(`https://api.darksky.net/forecast/${DARK_SKY_API_KEY}/${this.state.lat},${this.state.long}`)
+    return fetch(`https://api.darksky.net/forecast/${DARK_SKY_API_KEY}/${this.state.lat},${this.state.long}?units=ca`)
       .then(response => response.json())
       .then(responseJson => {
         this.setState({
@@ -33,7 +33,7 @@ export default class App extends React.Component {
     if (this.state.isLoading) {
       weatherData = <Text>Loading</Text>
     } else {
-      weatherData = <Text>{this.state.weatherInfo.currently.summary}</Text>
+      weatherData = <Text><Text>{this.state.weatherInfo.currently.temperature}</Text>&deg;C - <Text>{this.state.weatherInfo.currently.summary}</Text></Text>
     }
     return (
       <View style={styles.container}>
