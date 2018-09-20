@@ -5,6 +5,7 @@ React Native weather app drawing from the Dark Sky API.
 ## Acknowledgments
 
 * [Powered by Dark Sky](https://darksky.net/poweredby/)
+* Created using the [Expo CLI](https://expo.io/)
 
 <!-- ## Getting Started
 
