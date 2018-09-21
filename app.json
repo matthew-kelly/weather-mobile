@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "weather-mobile",
-    "description": "This project is really great.",
-    "slug": "weather-mobile",
+    "name": "My Weather",
+    "description": "Instant Hyperlocal Weather Updates",
+    "slug": "my-weather",
     "privacy": "public",
     "sdkVersion": "30.0.0",
     "platforms": ["ios", "android"],
@@ -21,7 +21,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bmkdev.myweather"
+    },
+    "android": {
+      "package": "com.bmkdev.myweather"
     }
   }
 }
