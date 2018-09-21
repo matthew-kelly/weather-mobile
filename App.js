@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, Alert } from 'react-native';
-import { DARK_SKY_API_KEY, CURRENT_LAT, CURRENT_LONG } from 'react-native-dotenv';
+import { DARK_SKY_API_KEY, GOOGLE_MAPS_API_KEY, CURRENT_LAT, CURRENT_LONG } from 'react-native-dotenv';
+import Geocoder from 'react-native-geocoding';
 import WeatherIcon from './src/components/WeatherIcon';
+
+Geocoder.init(`${GOOGLE_MAPS_API_KEY}`);
 
 export default class App extends Component {
   constructor(props) {
@@ -11,10 +14,6 @@ export default class App extends Component {
       lat: CURRENT_LAT,
       long: CURRENT_LONG
     }
-  }
-
-  componentDidMount() {
-    // this.getWeather(this.state.lat, this.state.long);
   }
 
   getWeather = (lat, long) => {
@@ -30,38 +29,47 @@ export default class App extends Component {
   }
 
   randomLat = () => {
-    return Math.random() * Math.floor(90);
+    return Number(Math.random() * Math.floor(90)).toFixed(6);
   }
 
   randomLong = () => {
-    return Math.random() * Math.floor(180);
+    return Number(Math.random() * Math.floor(180)).toFixed(6);
   }
 
-  newRandomLocation = () => {
-    let lat = this.randomLat();
-    let long = this.randomLong();
-    this.getWeather(lat, long);
-    this.setState({
-      lat,
-      long,
-    })
+  getLocation = (lat, long) => {
+    return Geocoder.from(this.state.lat, this.state.long)
+      .then(json => {
+        let result = json.results[0];
+        this.setState({
+          city: `${result.address_components[2].long_name}, ${result.address_components[5].short_name}, ${result.address_components[6].long_name}`
+        })
+      })
+      .catch(e => {
+        console.error(e)
+      });
+  }
+
+  componentDidMount() {
+    this.getLocation(this.state.lat, this.state.long);
+    this.getWeather(this.state.lat, this.state.long);
   }
 
   render() {
     let weatherData;
     let currentWeather;
+    let currentLocation;
     if (this.state.isLoading) {
       weatherData = <Text>Loading...</Text>
     } else {
       weatherData = <Text style={styles.weather}><Text>{this.state.weatherInfo.currently.temperature}</Text>&deg;C - <Text>{this.state.weatherInfo.currently.summary}</Text></Text>
       currentWeather = <WeatherIcon currentWeather={this.state.weatherInfo} />
+      currentLocation = <Text style={styles.city}>{this.state.city}</Text>
     }
     return (
       <View style={styles.container}>
         {currentWeather}
         {weatherData}
-        <Text>lat: {this.state.lat}, long: {this.state.long}</Text>
-        <Button onPress={this.newRandomLocation} title='New Location'></Button>
+        {currentLocation}
         <Text style={styles.footer}>Powered by Dark Sky</Text>
       </View>
     );
@@ -77,7 +85,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   weather: {
-    fontSize: 30,
+    fontSize: 20,
+  },
+  city: {
+    fontSize: 16,
   },
   footer: {
     position: 'absolute',
