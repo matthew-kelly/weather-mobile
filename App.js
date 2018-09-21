@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, Alert } from 'react-native';
+import { Permissions, Location } from 'expo';
 import { DARK_SKY_API_KEY, GOOGLE_MAPS_API_KEY, CURRENT_LAT, CURRENT_LONG } from 'react-native-dotenv';
 import Geocoder from 'react-native-geocoding';
 import WeatherIcon from './src/components/WeatherIcon';
@@ -10,11 +11,28 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      location: null,
+      errorMessage: null,
       isLoading: true,
-      lat: CURRENT_LAT,
-      long: CURRENT_LONG
+      lat: null,
+      long: null
     }
   }
+
+  _getLocationAsync = async () => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== 'granted') {
+      this.setState({
+        errorMessage: 'Permission to access location was denied',
+      });
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    this.setState({
+      lat: location.coords.latitude,
+      long: location.coords.longitude
+    });
+  };
 
   getWeather = (lat, long) => {
     return fetch(`https://api.darksky.net/forecast/${DARK_SKY_API_KEY}/${lat},${long}?units=ca`)
@@ -26,14 +44,6 @@ export default class App extends Component {
         })
       })
       .catch(e => console.error(e));
-  }
-
-  randomLat = () => {
-    return Number(Math.random() * Math.floor(90)).toFixed(6);
-  }
-
-  randomLong = () => {
-    return Number(Math.random() * Math.floor(180)).toFixed(6);
   }
 
   getLocation = (lat, long) => {
@@ -50,11 +60,19 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    this.getLocation(this.state.lat, this.state.long);
-    this.getWeather(this.state.lat, this.state.long);
+    this._getLocationAsync()
+      .then(res => {
+        this.getLocation(this.state.lat, this.state.long);
+        this.getWeather(this.state.lat, this.state.long);
+      })
   }
 
   render() {
+    let errorMessage;
+    if (this.state.errorMessage) {
+      errorMessage = <Text>{this.state.errorMessage}</Text>
+    }
+
     let weatherData;
     let currentWeather;
     let currentLocation;
@@ -67,6 +85,7 @@ export default class App extends Component {
     }
     return (
       <View style={styles.container}>
+        {errorMessage}
         {currentWeather}
         {weatherData}
         {currentLocation}
